@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+const moment = require("moment");
 
 const URL = "ws://127.0.0.1:8080";
 
@@ -9,12 +10,15 @@ const App = () => {
     const [ws, setWs] = useState(new WebSocket(URL));
 
     const submitMessage = (usr, msg) => {
+        const ts = moment().format("LT");
         // when message is submitted, create message object
-        const message = { user: usr, message: msg };
+        const message = { user: usr, message: msg, timestamp: ts };
         // stringify object into JSON and send to backend
         ws.send(JSON.stringify(message));
+        console.log("STRINGIFYMSG: ", message);
         // set messages with new message and spread out old messages
         setMessages([message, ...messages]);
+        console.log("MESSAGE SUBMITTED");
     };
 
     useEffect(() => {
@@ -57,7 +61,10 @@ const App = () => {
             <ul>
                 {messages.reverse().map((message, index) => (
                     <li key={index}>
-                        <b>{message.user}</b>: <em>{message.message}</em>
+                        <b>
+                            {message.user}({message.timestamp})
+                        </b>
+                        : <em>{message.message}</em>
                     </li>
                 ))}
             </ul>
