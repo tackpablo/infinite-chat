@@ -23,7 +23,7 @@ const App = () => {
 
     useEffect(() => {
         // connects to ws
-        ws.onopen = () => {
+        ws.onopen = (e) => {
             console.log("WebSocket Connected");
         };
 
@@ -33,7 +33,7 @@ const App = () => {
             const message = JSON.parse(e.data);
             console.log("PARSEDMSG: ", message);
             // set messages with new message and spread out old messages
-            setMessages([message, ...messages]);
+            setMessages([...message, ...messages]);
         };
 
         // disconnects from ws
@@ -59,7 +59,7 @@ const App = () => {
             </label>
 
             <ul>
-                {messages.reverse().map((message, index) => (
+                {messages.map((message, index) => (
                     <li key={index}>
                         <b>
                             {message.user}({message.timestamp})
