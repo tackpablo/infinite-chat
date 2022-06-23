@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <title>ChatApp</title>
+</head>
+<body>
+<div style="display:flex; padding:1em">
+
+  <input id="name"/>&nbsp;
+  <input id="message"></input>&nbsp;
+  <button onClick="fire()">Send</button>
+</div>
+<div style="display:flex; padding:1em">
+<div id="messages"></div>
+</div>
+  <script>
+    const getElement = (id) => document.getElementById(id);
+    
+    const addMessage = (message) => {
+      const pTag = document.createElement('p');
+      pTag.appendChild(document.createTextNode(message));
+      getElement('messages').appendChild(pTag);
+    };
+    
+    const ws = new WebSocket('ws://localhost:3030');ws.onopen = () => { 
+      console.log('Now connected'); 
+    };ws.onmessage = (event) => {
+      
+        const messages = JSON.parse(event.data);
+      messages.forEach(addMessage);
+    };
+    
+    const fire = () => {
+      const username = getElement('name').value || '???'
+      ws.send(`${username}: ${getElement('message').value}`);
+      getElement('message').value = '';
+    };
+    </script>
+
+</body>
+</html>
