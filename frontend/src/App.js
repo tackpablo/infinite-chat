@@ -33,7 +33,7 @@ const App = () => {
             const message = JSON.parse(e.data);
             console.log("PARSEDMSG: ", message);
             // set messages with new message and spread out old messages
-            setMessages([...message, ...messages]);
+            setMessages([message, ...messages]);
         };
 
         // disconnects from ws

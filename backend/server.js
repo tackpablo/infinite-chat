@@ -9,21 +9,21 @@ const moment = require("moment");
 
 const Redis = require("ioredis");
 
-const redis = new Redis({
-  host: process.env.REDIS_HOSTNAME,
-  port: process.env.REDIS_PORT,
-  password: process.env.REDIS_PASSWORD,
-});
+// const redis = new Redis({
+//     host: process.env.REDIS_HOSTNAME,
+//     port: process.env.REDIS_PORT,
+//     password: process.env.REDIS_PASSWORD,
+// });
 
-redis.set("mykey", "value");
+// redis.set("mykey", "value");
 
-redis.get("mykey").then((result) => {
-  console.log(result); // Prints "value"
-});
+// redis.get("mykey").then((result) => {
+//     console.log(result); // Prints "value"
+// });
 
-console.log("REDISSTATUS: ", redis.status);
+// console.log("REDISSTATUS: ", redis.status);
 
-redis.set("mykey", "value");
+const publisher = Redis.createClient();
 
 let messageHistory = [];
 
@@ -40,6 +40,12 @@ wss.on("connection", function connection(ws) {
     );
     ws.send(msgHistory);
 
+    // code to broadcast messages
+    // for each client connected to the websocket
+    // wss.clients.forEach(function each(client) {
+    // we want to send a message
+    // client.send(message" })
+
     // when a message is sent
     ws.on("message", function incoming(data) {
         console.log("ON MESSAGE");
@@ -55,6 +61,9 @@ wss.on("connection", function connection(ws) {
 
         messageHistory.push(parsedData);
         console.log("HISTORYARR: ", messageHistory);
+
+        publisher.publish("msgHistory", JSON.stringify(messageHistory));
+        console.log("PUBLISHING AN EVENT USING REDIS");
 
         const sendData = JSON.stringify(parsedData);
 
@@ -75,10 +84,20 @@ wss.on("connection", function connection(ws) {
 
             // if client is not the one who sent the message and client is connected and socket is open
             if (client !== ws && client.readyState === WebSocket.OPEN) {
-                // send data
-                client.send(sendData);
+                const subscriber = Redis.createClient();
+
+                subscriber.subscribe("msgHistory");
+
+                subscriber.on("message", (channel, message) => {
+                    console.log(`Received msg from ${channel}`);
+                    console.log("Received data: ", JSON.parse(message));
+                    // send data
+                    client.send(message);
+                    console.log("SUBDATA SENT");
+                });
+
                 // console.log("WSSENTDATA", data);
             }
         });
     });
-  });
+});

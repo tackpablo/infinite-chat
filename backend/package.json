@@ -12,6 +12,7 @@
     "dependencies": {
         "dotenv": "^16.0.1",
         "ioredis": "^5.0.6",
-        "moment": "^2.29.3"
+        "moment": "^2.29.3",
+        "ws": "7.5"
     }
 }
