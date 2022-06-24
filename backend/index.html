@@ -2,36 +2,83 @@
 <html lang="en">
   <title>ChatApp</title>
 </head>
-<body>
-<div style="display:flex; padding:1em">
 
-  <input id="name"/>&nbsp;
-  <input id="message"></input>&nbsp;
-  <button onClick="fire()">Send</button>
-</div>
+<body>
+
 <div style="display:flex; padding:1em">
-<div id="messages"></div>
+    <h2>The Next WhatsApp</h2>
 </div>
+
+
+<div style="display:flex; padding:1em">
+<label for="name">Username</label>&nbsp;
+  <input id="name" name="name"/>&nbsp;
+
+  <label for="message">Message</label>&nbsp;
+  <input id="message" name=""message></input>&nbsp;
+
+  <button onClick="fire()" id="submitbtn">Send</button>
+
+</div>
+
+<div style="display:flex; padding:1em">
+    <div id="messages"></div>
+</div>
+
   <script>
+    const params = new URLSearchParams(window.location.search)
+    portParam = params.get("port")
+
+    // calculates the time
+    const today = new Date();
+    const time = today.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}).toUpperCase();
+
+    // function to get element by id
     const getElement = (id) => document.getElementById(id);
     
+    // add message to html
     const addMessage = (message) => {
+        // creates ptag
       const pTag = document.createElement('p');
+      // appends a child text node to ptag with message
       pTag.appendChild(document.createTextNode(message));
+      // appends ptag to messages node
       getElement('messages').appendChild(pTag);
     };
     
-    const ws = new WebSocket('ws://localhost:3030');ws.onopen = () => { 
+    // create new ws connection
+    const ws = new WebSocket(`ws://localhost:${portParam}`);
+    
+    // on open ws connection
+    ws.onopen = () => { 
+        // sends a console log
       console.log('Now connected'); 
-    };ws.onmessage = (event) => {
-      
-        const messages = JSON.parse(event.data);
-      messages.forEach(addMessage);
     };
     
+    // when a message is received
+    ws.onmessage = (event) => {
+        // parses data
+        const messages = JSON.parse(event.data);
+        // appends data
+      messages.forEach(addMessage);
+    };
+
+    // allows to msg submission via enter key
+    const msg = getElement("message")
+    msg.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault()
+            getElement("submitbtn").click();
+        }
+    })
+    
+    // when message is submitted
     const fire = () => {
+        // username is the element name's value or ???
       const username = getElement('name').value || '???'
-      ws.send(`${username}: ${getElement('message').value}`);
+      // send a string of time, username and message value to ws
+      ws.send(`${time} ${username}: ${getElement('message').value}`);
+      // reset message input
       getElement('message').value = '';
     };
     </script>
