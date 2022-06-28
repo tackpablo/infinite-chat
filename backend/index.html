@@ -50,16 +50,16 @@
     const ws = new WebSocket(`ws://localhost:${portParam}`);
     
     // on open ws connection
-    ws.onopen = () => { 
+    ws.onopen = (event) => { 
         // sends a console log
-      console.log('Now connected'); 
+      console.log('Now connected');
     };
     
     // when a message is received
     ws.onmessage = (event) => {
-        // parses data
-        const messages = JSON.parse(event.data);
-        // appends data
+      // parses data
+      const messages = JSON.parse(event.data);
+      // appends data
       messages.forEach(addMessage);
     };
 

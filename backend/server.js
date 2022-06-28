@@ -19,29 +19,47 @@ const socketServer = new WebSocket.Server({ port: socketPort });
 
 let messages = [`Start Chatting!`];
 
+let filteredMsg = "";
+
 // create redis publisher
 const publisher = Redis.createClient();
-// create redis subscriber
+// create redis publisher
 const subscriber = Redis.createClient();
+
+// create client for cache
+// let client = Redis.createClient();
+
+// const checkCache = () => {
+//     client.get("msgHistory", (err, data) => {
+//         if (data) {
+//             let cachedData = JSON.parse(data);
+//             console.log("CACHEDDATA: ", cachedData);
+//             return cachedData;
+//         }
+//     });
+// };
+
 // subscribe to publisher
 subscriber.subscribe("newMsg");
 
 // turn subscriber on
 subscriber.on("message", (channel, message) => {
     console.log(`Received msg from ${channel}`);
-    console.log("Received data: ", JSON.parse(message));
-
-    // broadcast this msg to all clients
+    console.log("Received data (msg): ", JSON.parse(message));
+    // save message as a filter
+    filteredMsg = JSON.parse(message);
+    // broadcast msg to all clients
     broadcast(JSON.parse(message), socketServer);
-    // update msg history
 });
 
 // when someone connects to socket server
 socketServer.on("connection", (socketClient) => {
-    console.log("WEBSOCKET", socketServer);
     console.log("ON CONNECTION");
     console.log("Number of clients: ", socketServer.clients.size);
 
+    // console.log("CACHECHECK: ", checkCache());
+
+    // socketClient.send(checkCache());
     socketClient.send(JSON.stringify(messages));
 
     // when a message is sent
@@ -54,13 +72,20 @@ socketServer.on("connection", (socketClient) => {
         }
 
         messages.push(message);
-        console.log("MESSAGES: ", messages);
+        console.log("ALLMESSAGES: ", messages);
+
+        // client.setex("msgHistory", 600, JSON.stringify(messages));
 
         // publish the message history
         publisher.publish("newMsg", JSON.stringify(message));
         console.log("PUBLISHING AN EVENT USING REDIS");
 
-        broadcast(message, socketClient);
+        // console.log("FILTEREDMSG: ", filteredMsg);
+        // console.log("MSG: ", message);
+
+        if (filteredMsg === message) {
+            broadcast(message, socketClient);
+        }
     });
 
     // when someone disconnects
@@ -72,7 +97,7 @@ socketServer.on("connection", (socketClient) => {
 
 function broadcast(message, socketClient) {
     socketServer.clients.forEach((client) => {
-        console.log("EACH CLIENT: ", client);
+        // console.log("EACH CLIENT: ", client);
         // if client is connected and socket is open
         if (client !== socketClient && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify([message]));
