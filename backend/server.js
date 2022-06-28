@@ -19,14 +19,14 @@ const socketServer = new WebSocket.Server({ port: socketPort });
 
 let messages = [`Start Chatting!`];
 
-let filteredMsg = "";
+// let filteredMsg = "";
 
 // create redis publisher
 const publisher = Redis.createClient();
 // create redis publisher
 const subscriber = Redis.createClient();
 
-// create client for cache
+// // create client for cache
 // let client = Redis.createClient();
 
 // const checkCache = () => {
@@ -47,9 +47,15 @@ subscriber.on("message", (channel, message) => {
     console.log(`Received msg from ${channel}`);
     console.log("Received data (msg): ", JSON.parse(message));
     // save message as a filter
-    filteredMsg = JSON.parse(message);
+    // filteredMsg = JSON.parse(message);
     // broadcast msg to all clients
-    broadcast(JSON.parse(message), socketServer);
+    // broadcast(JSON.parse(message), socketServer);
+    if (messages.length >= 24) {
+        messages.shift();
+    }
+
+    messages.push(JSON.parse(message));
+    broadcast(JSON.parse(message));
 });
 
 // when someone connects to socket server
@@ -67,13 +73,10 @@ socketServer.on("connection", (socketClient) => {
         console.log("ON MESSAGE");
         console.log("MESSAGE: ", message);
 
-        if (messages.length > 24) {
-            messages.shift();
-        }
-
-        messages.push(message);
+        // messages.push(message);
         console.log("ALLMESSAGES: ", messages);
 
+        // client.getdel("msgHistory");
         // client.setex("msgHistory", 600, JSON.stringify(messages));
 
         // publish the message history
@@ -83,9 +86,9 @@ socketServer.on("connection", (socketClient) => {
         // console.log("FILTEREDMSG: ", filteredMsg);
         // console.log("MSG: ", message);
 
-        if (filteredMsg === message) {
-            broadcast(message, socketClient);
-        }
+        // if (filteredMsg === message) {
+        //     broadcast(message, socketClient);
+        // }
     });
 
     // when someone disconnects
@@ -95,11 +98,14 @@ socketServer.on("connection", (socketClient) => {
     });
 });
 
-function broadcast(message, socketClient) {
+function broadcast(message) {
     socketServer.clients.forEach((client) => {
         // console.log("EACH CLIENT: ", client);
         // if client is connected and socket is open
-        if (client !== socketClient && client.readyState === WebSocket.OPEN) {
+        if (
+            client !== socketServer.socketClient &&
+            client.readyState === WebSocket.OPEN
+        ) {
             client.send(JSON.stringify([message]));
         }
     });

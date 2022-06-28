@@ -53,12 +53,15 @@
     ws.onopen = (event) => { 
         // sends a console log
       console.log('Now connected');
+      // const messages = event;
+      // console.log("ONOPEN: ", messages)
     };
     
     // when a message is received
     ws.onmessage = (event) => {
       // parses data
       const messages = JSON.parse(event.data);
+      console.log("ONMSG: ", messages)
       // appends data
       messages.forEach(addMessage);
     };
