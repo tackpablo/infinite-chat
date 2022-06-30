@@ -47,7 +47,7 @@
     };
     
     // create new ws connection
-    const ws = new WebSocket(`ws://localhost:${portParam}`);
+    const ws = new WebSocket(`ws://0.0.0.0:${portParam}` || `ws://localhost:${portParam}`);
     
     // on open ws connection
     ws.onopen = (event) => { 
