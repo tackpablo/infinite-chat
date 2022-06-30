@@ -62,8 +62,11 @@
       // parses data
       const messages = JSON.parse(event.data);
       console.log("ONMSG: ", messages)
+      
       // appends data
-      messages.forEach(addMessage);
+      messages.map((message) => {
+        return message.split("+:+").shift()
+      }).forEach(addMessage)
     };
 
     // allows to msg submission via enter key
