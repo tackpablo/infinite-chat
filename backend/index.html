@@ -28,6 +28,7 @@
   <script>
     const params = new URLSearchParams(window.location.search)
     portParam = params.get("port")
+    socketUrl = params.get("socketUrl")
 
     // calculates the time
     const today = new Date();
@@ -47,7 +48,7 @@
     };
     
     // create new ws connection
-    const ws = new WebSocket(`ws://174.129.150.74:${portParam}` || `ws://localhost:${portParam}`);
+    const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     
     // on open ws connection
     ws.onopen = (event) => { 
