@@ -24,12 +24,12 @@ let messages = [`Start Chatting!+:+Welcome`];
 
 // create redis publisher
 const publisher = Redis.createClient({
-    host: "chat-app.elc.freuvv.clustercfg.use1.cache.amazonaws.com",
+    host: "172.31.24.142",
     port: "6379",
 });
 // create redis publisher
 const subscriber = Redis.createClient({
-    host: "chat-app.elc.freuvv.clustercfg.use1.cache.amazonaws.com",
+    host: "172.31.24.142",
     port: "6379",
 });
 
