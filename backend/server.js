@@ -23,9 +23,15 @@ const socketServer = new WebSocket.Server({ port: socketPort }),
 let messages = [`Start Chatting!+:+Welcome`];
 
 // create redis publisher
-const publisher = Redis.createClient({ host: "127.0.0.1", port: "6379" });
+const publisher = Redis.createClient({
+    host: "chat-app.elc.freuvv.clustercfg.use1.cache.amazonaws.com",
+    port: "6379",
+});
 // create redis publisher
-const subscriber = Redis.createClient({ host: "127.0.0.1", port: "6379" });
+const subscriber = Redis.createClient({
+    host: "chat-app.elc.freuvv.clustercfg.use1.cache.amazonaws.com",
+    port: "6379",
+});
 
 // subscribe to publisher
 subscriber.subscribe("newMsg");
