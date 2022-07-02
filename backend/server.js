@@ -12,11 +12,11 @@ app.get("/", (req, res) => {
 const port = Number(process.argv[2]);
 const socketPort = Number(process.argv[3]);
 
-app.listen(port, () => {
+app.listen(port || 8080, () => {
     console.log(`listening http://localhost:${port}`);
 });
 
-const socketServer = new WebSocket.Server({ port: socketPort }),
+const socketServer = new WebSocket.Server({ port: socketPort || 3030 }),
     SERVERS = [],
     CLIENTS = [];
 
