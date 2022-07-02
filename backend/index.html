@@ -48,6 +48,9 @@
     };
     
     // create new ws connection
+    // port param for load balancer = true (if no query params, socketUrl)
+    
+    // else
     const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     
     // on open ws connection

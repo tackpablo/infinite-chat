@@ -51,7 +51,13 @@ subscriber.on("message", (channel, message) => {
     // add new msg to history
     messages.push(subMsg);
 
-    // send msg to all servers
+    let serverId = subMsg.split("+:+").pop();
+
+    if (serverId === SERVERS[0]) {
+        return;
+    }
+
+    // send msg to all clients
     broadcast(subMsg);
 });
 
@@ -98,21 +104,11 @@ socketServer.on("connection", (socketClient) => {
         // make a message with socketServer ID
         let idMessage = `${message}+:+${socketServer.uid}`;
 
-        // save new messages in variable
-        let wsMsg = idMessage;
-        console.log("WSMSG: ", wsMsg);
-
         // publish the msg with the appended socket server ID
         publisher.publish("newMsg", JSON.stringify(idMessage));
         console.log("PUBLISHING AN EVENT USING REDIS");
 
-        // if the message server ID is not equal to this server ID
-        if (socketServer.uid != SERVERS[0]) {
-            broadcast(idMessage);
-        } else {
-            // do nothing
-            return;
-        }
+        broadcast(idMessage);
     });
 
     // when someone disconnects
