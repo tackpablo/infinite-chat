@@ -27,7 +27,7 @@
 
   <script>
     const params = new URLSearchParams(window.location.search)
-    portParam = params.get("port") || 3030;
+    portParam = params.get("port") || 8080;
     socketUrl = params.get("socketUrl")
     loadBal = params.get("loadBal")
 
@@ -50,8 +50,8 @@
     
     // create new ws connection
     // port param for load balancer = true (if no query params, socketUrl)
-    if (loadBal == true) {
-      const ws = new WebSocket(`ws://${socketUrl}:3030`);
+    if (loadBal == true || socketUrl) {
+      const ws = new WebSocket(`ws://${socketUrl}:8080`);
     } else {
       const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     }
