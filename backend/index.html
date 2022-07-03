@@ -52,7 +52,7 @@
     // port param for load balancer = true (if no query params, socketUrl)
     if (loadBal == true) {
       const ws = new WebSocket(`ws://${socketUrl}:3030`);
-    } else {
+    } else if (socketUrl && portParam) {
       const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     }
     
