@@ -9,6 +9,10 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
+app.get("/health", (req, res) => {
+    return res.status(200).send();
+});
+
 const port = Number(process.argv[2]);
 const socketPort = Number(process.argv[3]);
 

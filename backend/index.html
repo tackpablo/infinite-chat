@@ -51,7 +51,7 @@
     // create new ws connection
     let ws;
     // port param for load balancer = true (if no query params, socketUrl)
-    if (loadBal == true) {
+    if (!socketUrl) {
       ws = new WebSocket('ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com');
     } else {
       ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
