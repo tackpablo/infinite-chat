@@ -27,7 +27,7 @@
 
   <script>
     const params = new URLSearchParams(window.location.search)
-    portParam = params.get("port")
+    portParam = params.get("port") || 3030;
     socketUrl = params.get("socketUrl")
     loadBal = params.get("loadBal")
 
