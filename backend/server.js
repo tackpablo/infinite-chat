@@ -2,8 +2,11 @@ const express = require("express");
 const path = require("path");
 const app = express();
 const WebSocket = require("ws");
+const http = require("http");
 const Redis = require("ioredis");
 const { v4: uuid } = require("uuid");
+
+let server = http.Server(app);
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
@@ -16,11 +19,7 @@ app.get("/health", (req, res) => {
 const port = Number(process.argv[2]);
 const socketPort = Number(process.argv[3]);
 
-app.listen(port, () => {
-    console.log(`listening http://localhost:${port}`);
-});
-
-const socketServer = new WebSocket.Server({ port: socketPort }),
+const socketServer = new WebSocket.Server({ server: server }),
     SERVERS = [],
     CLIENTS = [];
 
@@ -35,6 +34,10 @@ const publisher = Redis.createClient({
 const subscriber = Redis.createClient({
     host: "172.31.24.142",
     port: "6379",
+});
+
+server.listen(port, () => {
+    console.log(`listening http://localhost:${port}`);
 });
 
 // subscribe to publisher
