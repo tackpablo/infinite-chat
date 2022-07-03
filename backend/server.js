@@ -17,7 +17,7 @@ app.listen(port || 8080, () => {
 });
 
 const socketServer = new WebSocket.Server(
-        "ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com" || ""
+        { noServer: true }
         // { port: socketPort }
     ),
     SERVERS = [],
