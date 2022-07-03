@@ -16,7 +16,10 @@ app.listen(port, () => {
     console.log(`listening http://localhost:${port}`);
 });
 
-const socketServer = new WebSocket.Server({ port: socketPort }),
+const socketServer = new WebSocket.Server(
+        "ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com" || "",
+        { port: socketPort }
+    ),
     SERVERS = [],
     CLIENTS = [];
 

@@ -29,6 +29,7 @@
     const params = new URLSearchParams(window.location.search)
     portParam = params.get("port")
     socketUrl = params.get("socketUrl")
+    loadBal = params.get("loadBal")
 
     // calculates the time
     const today = new Date();
@@ -49,9 +50,11 @@
     
     // create new ws connection
     // port param for load balancer = true (if no query params, socketUrl)
-    
-    // else
-    const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
+    if (loadBal == true || !socketUrl) {
+      const ws = new WebSocket('ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com:3030');
+    } else {
+      const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
+    }
     
     // on open ws connection
     ws.onopen = (event) => { 
