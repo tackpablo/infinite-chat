@@ -50,11 +50,11 @@
     
     // create new ws connection
     // port param for load balancer = true (if no query params, socketUrl)
-    if (loadBal) {
-      const ws = new WebSocket(`ws://chatapp:3030`);
-    } else{
+    // if (loadBal) {
+    //   const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
+    // } else{
       const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
-    }
+    // }
     
     // on open ws connection
     ws.onopen = (event) => { 
