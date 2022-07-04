@@ -4,6 +4,7 @@ const WebSocket = require("ws");
 const http = require("http");
 const Redis = require("ioredis");
 const { v4: uuid } = require("uuid");
+const moment = require("moment");
 
 // Port as args
 const port = Number(process.argv[2]);
@@ -49,7 +50,11 @@ const MAX_MSG_HISTORY = 24;
 const mySocketId = uuid();
 console.log("Socket server uuid: ", mySocketId);
 let msgHistory = [
-    { username: "System", msg: `Start Chatting!`, date: Date.now() },
+    {
+        username: "System",
+        msg: `Start Chatting!`,
+        date: moment().format("LLL"),
+    },
 ];
 
 // Listen for new Redis events
@@ -101,10 +106,7 @@ wss.on("connection", (ws) => {
         // TODO: validation, username = string?, msg = string?, max number of characters?
 
         // Make a server msg obj
-        const unparsedDate = Date.now();
-        const date = unparsedDate
-            .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-            .toUpperCase();
+        const date = moment().format("LLL");
         const clientMsgObj = {
             username: msgObj.username,
             msg: msgObj.msg,
