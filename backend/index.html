@@ -39,21 +39,22 @@
     const getElement = (id) => document.getElementById(id);
     
     // add message to html
-    const addMessage = (message) => {
+    const addMessage = (msgObj) => {
         // creates ptag
       const pTag = document.createElement('p');
       // appends a child text node to ptag with message
-      pTag.appendChild(document.createTextNode(message));
+      pTag.appendChild(document.createTextNode(`[${msgObj.date} - ${msgObj.username}] ${msgObj.msg}`));
       // appends ptag to messages node
       getElement('messages').appendChild(pTag);
     };
     
     // create new ws connection
+    let ws;
     // port param for load balancer = true (if no query params, socketUrl)
-    if (loadBal == true) {
-      const ws = new WebSocket(`ws://${socketUrl}:3030`);
-    } else if (socketUrl && portParam) {
-      const ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
+    if (!socketUrl) {
+      ws = new WebSocket('ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com');
+    } else {
+      ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     }
     
     // on open ws connection
@@ -71,9 +72,7 @@
       console.log("ONMSG: ", messages)
       
       // appends data
-      messages.map((message) => {
-        return message.split("+:+").shift()
-      }).forEach(addMessage)
+      messages.forEach(addMessage);
     };
 
     // allows to msg submission via enter key
@@ -90,7 +89,11 @@
         // username is the element name's value or ???
       const username = getElement('name').value || '???'
       // send a string of time, username and message value to ws
-      ws.send(`${time} ${username}: ${getElement('message').value}`);
+      ws.send(JSON.stringify({
+        username: username,
+        msg: getElement('message').value
+      }));
+    //   ws.send(`${time} ${username}: ${getElement('message').value}`);
       // reset message input
       getElement('message').value = '';
     };

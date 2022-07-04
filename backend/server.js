@@ -1,139 +1,142 @@
 const express = require("express");
 const path = require("path");
-const app = express();
 const WebSocket = require("ws");
+const http = require("http");
 const Redis = require("ioredis");
 const { v4: uuid } = require("uuid");
 
+// Port as args
+const port = Number(process.argv[2]);
+
+// Create HTTP server
+const app = express();
+const server = http.Server(app);
+
+// Express server routes
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
-const port = Number(process.argv[2]);
-const socketPort = Number(process.argv[3]);
-
-app.listen(port, () => {
-    console.log(`listening http://localhost:${port}`);
+app.get("/health", (req, res) => {
+    return res.status(200).send();
 });
 
-const socketServer = new WebSocket.Server({ port: socketPort }),
-    SERVERS = [],
-    CLIENTS = [];
+// Websocket server
+const wss = new WebSocket.Server({ server: server });
 
-let messages = [`Start Chatting!+:+Welcome`];
-
-// create redis publisher
+// Connect redis
 const publisher = Redis.createClient({
     host: "172.31.24.142",
     port: "6379",
 });
-// create redis publisher
+
 const subscriber = Redis.createClient({
     host: "172.31.24.142",
     port: "6379",
 });
 
-// subscribe to publisher
 subscriber.subscribe("newMsg");
 
-// turn subscriber on
+// Start HTTP server
+server.listen(port, () => {
+    console.log(`listening http://localhost:${port}`);
+});
+
+// Constants
+const MAX_MSG_HISTORY = 24;
+
+// Chat app business logic
+const mySocketId = uuid();
+console.log("Socket server uuid: ", mySocketId);
+let msgHistory = [
+    { username: "System", msg: `Start Chatting!`, date: Date.now() },
+];
+
+// Listen for new Redis events
 subscriber.on("message", (channel, message) => {
     console.log(`Received msg from ${channel}`);
     console.log("Received data (msg): ", JSON.parse(message));
 
-    // save subscriber msg
-    let subMsg = JSON.parse(message);
+    // Parse msg obj
+    let serverMsgObj = JSON.parse(message);
+    let clientMsgObj = {
+        username: serverMsgObj.username,
+        msg: serverMsgObj.msg,
+        date: serverMsgObj.date,
+    };
+    let receivedSocketId = serverMsgObj.socketId;
 
-    // if history is longer than 24, trim it
-    if (messages.length >= 24) {
-        messages.shift();
+    // If history is longer than 24, trim it
+    if (msgHistory.length >= MAX_MSG_HISTORY) {
+        msgHistory.shift();
     }
-    // add new msg to history
-    messages.push(subMsg);
 
-    let serverId = subMsg.split("+:+").pop();
+    // Add new msg to history
+    msgHistory.push(clientMsgObj);
 
-    if (serverId === SERVERS[0]) {
+    // Check if the received msg was from this socket, if it is, then don't broadcast it a 2nd time
+    if (receivedSocketId === mySocketId) {
         return;
     }
 
-    // send msg to all clients
-    broadcast(subMsg);
+    // Send msg to all clients
+    broadcast(clientMsgObj);
 });
 
-let clientId = "";
-
-// generate a server ID
-socketServer.uid = uuid();
-console.log("SOCKETSERVERID: ", socketServer.uid);
-
-// when someone connects to socket server
-socketServer.on("connection", (socketClient) => {
+// When someone connects to socket server
+wss.on("connection", (ws) => {
     console.log("ON CONNECTION");
-    console.log("Number of clients: ", socketServer.clients.size);
+    console.log("Number of clients: ", wss.clients.size);
 
-    // generate a socket client ID
-    socketClient.uid = uuid();
-    // save this client ID in a variable
-    clientId = socketClient.uid;
-    console.log("SOCKETCLIENTID: ", socketClient.uid);
+    // Send new sockets the message history
+    ws.send(JSON.stringify(msgHistory));
 
-    // send new sockets the message history
-    socketClient.send(JSON.stringify(messages));
-
-    // add ther server ID to servers list array
-    SERVERS.push(socketServer.uid);
-
-    // if servers list array is greater than one
-    if (SERVERS.length >= 1) {
-        // trim it as only one ID is required for a server
-        SERVERS.length = 1;
-    }
-
-    // push new socket servers to clients list array
-    CLIENTS.push(socketClient.uid);
-
-    console.log("SERVERLIST: ", SERVERS);
-    console.log("CLIENTLIST: ", CLIENTS);
-
-    // when a message is sent
-    socketClient.on("message", (message) => {
+    // When a message is received from a client
+    ws.on("message", (rawMsg) => {
         console.log("ON MESSAGE");
-        console.log("MESSAGE: ", message);
+        console.log("MESSAGE: ", rawMsg);
 
-        // make a message with socketServer ID
-        let idMessage = `${message}+:+${socketServer.uid}`;
+        const msgObj = JSON.parse(rawMsg);
 
-        // publish the msg with the appended socket server ID
-        publisher.publish("newMsg", JSON.stringify(idMessage));
+        // TODO: validation, username = string?, msg = string?, max number of characters?
+
+        // Make a server msg obj
+        const unparsedDate = Date.now();
+        const date = unparsedDate
+            .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            .toUpperCase();
+        const clientMsgObj = {
+            username: msgObj.username,
+            msg: msgObj.msg,
+            date: date,
+        };
+        const serverMsgObj = {
+            username: msgObj.username,
+            msg: msgObj.msg,
+            date: date,
+            socketId: mySocketId,
+        };
+
+        // Publish the server msg obj to all other socket servers
+        publisher.publish("newMsg", JSON.stringify(serverMsgObj));
         console.log("PUBLISHING AN EVENT USING REDIS");
 
-        broadcast(idMessage);
+        console.log("lel: " + JSON.stringify(clientMsgObj));
+        broadcast(clientMsgObj);
     });
 
-    // when someone disconnects
-    socketClient.on("close", (socketClient) => {
-        // loop through the client server IDs
-        for (let i = 0; i < CLIENTS.length; i++) {
-            // if they client connected is within the client list array
-            if (CLIENTS[i] == String(clientId)) {
-                // remove them as they are disconnecting
-                CLIENTS.splice(i, 1);
-                // console.log("UPDATEDCLIENTS: ", CLIENTS);
-                return;
-            }
-        }
-
+    // When someone disconnects
+    ws.on("close", () => {
         console.log("closed");
-        console.log("Number of clients: ", socketServer.clients.size);
+        console.log("Number of clients: ", wss.clients.size);
     });
 });
 
-function broadcast(message) {
-    socketServer.clients.forEach((client) => {
+function broadcast(clientMsgObj) {
+    wss.clients.forEach((client) => {
         // if client is connected and socket is open and not itself
         if (client.readyState == WebSocket.OPEN) {
-            client.send(JSON.stringify([message]));
+            client.send(JSON.stringify([clientMsgObj]));
             console.log("BROADCASTED");
             return;
         }
