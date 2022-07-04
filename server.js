@@ -5,6 +5,7 @@ const http = require("http");
 const Redis = require("ioredis");
 const { v4: uuid } = require("uuid");
 const moment = require("moment");
+require("dotenv").config();
 
 // Port as args
 const port = Number(process.argv[2]);
@@ -27,13 +28,13 @@ const wss = new WebSocket.Server({ server: server });
 
 // Connect redis
 const publisher = Redis.createClient({
-    host: "172.31.24.142",
-    port: "6379",
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
 });
 
 const subscriber = Redis.createClient({
-    host: "172.31.24.142",
-    port: "6379",
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
 });
 
 subscriber.subscribe("newMsg");
@@ -123,7 +124,7 @@ wss.on("connection", (ws) => {
         publisher.publish("newMsg", JSON.stringify(serverMsgObj));
         console.log("PUBLISHING AN EVENT USING REDIS");
 
-        console.log("lel: " + JSON.stringify(clientMsgObj));
+        console.log("PUBMSG: " + JSON.stringify(clientMsgObj));
         broadcast(clientMsgObj);
     });
 

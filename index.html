@@ -28,12 +28,7 @@
   <script>
     const params = new URLSearchParams(window.location.search)
     portParam = params.get("port") || 8080;
-    socketUrl = params.get("socketUrl")
-    loadBal = params.get("loadBal")
-
-    // calculates the time
-    const today = new Date();
-    const time = today.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}).toUpperCase();
+    socketUrl = params.get("socketUrl");
 
     // function to get element by id
     const getElement = (id) => document.getElementById(id);
@@ -50,7 +45,7 @@
     
     // create new ws connection
     let ws;
-    // port param for load balancer = true (if no query params, socketUrl)
+    // if no socketUrl provided, auto connect to the load balancer
     if (!socketUrl) {
       ws = new WebSocket('ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com');
     } else {
@@ -59,10 +54,7 @@
     
     // on open ws connection
     ws.onopen = (event) => { 
-        // sends a console log
       console.log('Now connected');
-      // const messages = event;
-      // console.log("ONOPEN: ", messages)
     };
     
     // when a message is received
@@ -88,12 +80,11 @@
     const fire = () => {
         // username is the element name's value or ???
       const username = getElement('name').value || '???'
-      // send a string of time, username and message value to ws
+      // send an object with username and message value to ws
       ws.send(JSON.stringify({
         username: username,
         msg: getElement('message').value
       }));
-    //   ws.send(`${time} ${username}: ${getElement('message').value}`);
       // reset message input
       getElement('message').value = '';
     };
