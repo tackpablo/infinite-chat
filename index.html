@@ -42,12 +42,14 @@
       // appends ptag to messages node
       getElement('messages').appendChild(pTag);
     };
+
+    let wsAddress = 'chat-app-lb-2067057343.us-east-1.elb.amazonaws.com';
     
     // create new ws connection
     let ws;
     // if no socketUrl provided, auto connect to the load balancer
     if (!socketUrl) {
-      ws = new WebSocket('ws://chat-app-lb-2067057343.us-east-1.elb.amazonaws.com');
+      ws = new WebSocket(`ws://${wsAddress}`);
     } else {
       ws = new WebSocket(`ws://${socketUrl}:${portParam}`);
     }
