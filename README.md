@@ -23,7 +23,7 @@ Both of these examples are local. They have been tested on AWS using the Load Ba
 
 #### Local - Easier
 
--   Installation to requires the installation of [redis](https://redis.io/docs/getting-started/installation/).
+-   Requires the installation of [redis](https://redis.io/docs/getting-started/installation/).
 -   Install all dependencies (using the `npm install ci` command).
 -   To run local instance:
     -   In `server.js`, remove host and port configurations for Redis.createClient (Line 30 and 35).
@@ -32,7 +32,7 @@ Both of these examples are local. They have been tested on AWS using the Load Ba
         -   This is due to only being able to use one local port (8080 and 8090) at a time for the server and one websocket port (3030 and 3040).
 -   When you visit the instance, you will need to pass in a params into the URL.
     -   `localhost:8080`/?port=`8080`&socketUrl=`localhost`
-        -   port is equal to the `local server port` and socketUrl to `localhost`
+        -   port is equal to the `local server port` you want to connect to (8080 or 8090) and socketUrl to `localhost`
 
 #### AWS - Difficult
 
@@ -44,6 +44,7 @@ Both of these examples are local. They have been tested on AWS using the Load Ba
     -   Once created, rename the `.envexample` file to `.env` and put in your own `Elasticache IP Address` for the `REDIS_HOST` and `PORT` for `REDIS_PORT` (default `6379`).
 -   You will need to create an `Elastic Load Balancer (ELB)`.
     -   This will be the `Application Load Balancer` using the default port `80` and forward the Listener to the 2 instances created (create a target group and use port `8080`).
+    -   For health check configurations, the path is `/health`
 -   For all these AWS services, don't forget to have security groups to allow for access.
 -   You will need to update the `wsAddress` with the ELB address (Line 46 in `index.html`)
 
